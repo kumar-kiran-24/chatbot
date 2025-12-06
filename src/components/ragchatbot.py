@@ -1,0 +1,79 @@
+import os
+from dotenv import load_dotenv
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.chat_history import BaseChatMessageHistory, InMemoryChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
+class RagChatbot:
+    store = {}          # stores chat history 
+    context_store = {}  # stores context per session
+
+    def __init__(self):
+        self.llm = ChatGroq(
+            model="llama-3.1-8b-instant",
+            api_key=os.getenv("GROQ_API_KEY")
+        )
+
+    def ragchatbot(self, question, context, session_id):
+
+        store = self.store
+        context_store = self.context_store
+        model = self.llm
+
+        # Save context only first time
+        if session_id not in context_store:
+            context_store[session_id] = context
+
+        # load saved context
+        self.saved_context = context_store[session_id]
+        self.session_id = session_id   # FIXED TYPO
+
+        def get_session_history(session_id: str) -> BaseChatMessageHistory:
+            if session_id not in store:
+                store[session_id] = InMemoryChatMessageHistory()
+            return store[session_id]
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """
+You are a context-based assistant.
+Use ONLY the provided context and previous messages.
+Never invent information.
+If something is not in the context or chat history, say:
+The information is not available in the provided context.
+"""),
+            MessagesPlaceholder(variable_name="history"),
+            ("human", "Context:\n{context}\n\nQuestion:\n{question}")
+        ])
+
+        chain = prompt | model
+
+        self.bot = RunnableWithMessageHistory(
+            chain,
+            get_session_history=get_session_history,
+            input_messages_key="question",
+            history_messages_key="history"
+        )
+
+        # FIRST RESPONSE
+        response = self.bot.invoke(
+            {"question": question, "context": self.saved_context},
+            config={"configurable": {"session_id": self.session_id}}
+        )
+
+        return response
+
+    # ASK WITHOUT CONTEXT (next questions)
+    def ask(self, question):
+        response = self.bot.invoke(
+            {"question": question, "context": self.saved_context},
+            config={"configurable": {"session_id": self.session_id}}
+        )
+        return response
+
+
+if __name__=="__main__":
+    obj=RagChatbot()
+    print(obj.ragchatbot(question="what is my name" ,context="my name is kiran kumar s i am genertaive ai engineer" ,session_id=1))
+    print(obj.ask(question="what is my job"))
