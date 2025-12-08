@@ -10,12 +10,17 @@ from langchain_community.vectorstores import FAISS
 
 
 class DataEmbedding:
+
     def __init__(self):
+        self.embedder = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        self.save_path=r"C:\GEN_AI\chatbot\embeddings"
+
+    def initiate_embedding(self, documents):
+        db = FAISS.from_documents(documents, self.embedder)
+        db.save_local(self.save_path)
         
-        pass
-    def initiate_embedding(self,documnets):
-        DB=FAISS.from_documents(documents=documnets,embedding=embeddings)
-        DB.save_local(r"C:\GEN_AI\chatbot\embeddings")
-        return DB
+        return self.save_path
+        
+    
 
 

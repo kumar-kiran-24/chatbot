@@ -22,13 +22,13 @@ class RagChatbot:
         context_store = self.context_store
         model = self.llm
 
-        # Save context only first time
+       
         if session_id not in context_store:
             context_store[session_id] = context
 
-        # load saved context
+       
         self.saved_context = context_store[session_id]
-        self.session_id = session_id   # FIXED TYPO
+        self.session_id = session_id 
 
         def get_session_history(session_id: str) -> BaseChatMessageHistory:
             if session_id not in store:
@@ -56,21 +56,21 @@ The information is not available in the provided context.
             history_messages_key="history"
         )
 
-        # FIRST RESPONSE
+       
         response = self.bot.invoke(
             {"question": question, "context": self.saved_context},
             config={"configurable": {"session_id": self.session_id}}
         )
 
-        return response
+        return response.content
 
-    # ASK WITHOUT CONTEXT (next questions)
+    
     def ask(self, question):
         response = self.bot.invoke(
             {"question": question, "context": self.saved_context},
             config={"configurable": {"session_id": self.session_id}}
         )
-        return response
+        return response.content
 
 
 if __name__=="__main__":
