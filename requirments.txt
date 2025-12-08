@@ -1,1 +1,10 @@
-langchain==0.3.4
+flask
+requests
+python-dotenv
+langchain
+langchain-chroma
+langchain-huggingface
+chromadb
+beautifulsoup4
+tiktoken
+
