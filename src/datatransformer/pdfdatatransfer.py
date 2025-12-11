@@ -8,6 +8,6 @@ class PdfTransfer:
         loader = PyPDFLoader(pdf_path)
         return loader.load()
 
-obj = PdfTransfer()
-pages = obj.transfer(r"C:\Users\kiran\Downloads\Project_Objectives_and_Overview.pdf")
-print(pages)
+# obj = PdfTransfer()
+# pages = obj.transfer(r"C:\Users\kiran\Downloads\Project_Objectives_and_Overview.pdf")
+# print(pages)
