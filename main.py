@@ -8,6 +8,7 @@ from src.dataingestion import Dataingestion
 from src.components.ragchatbot import RagChatbot
 from src.datatransformer.webdatatransfer import WebTransfer
 from src.datatransformer.textdatatransfer import TextTransfer
+from src.datatransformer.pdfdatatransfer import PdfTransfer
 
 load_dotenv()
 
@@ -20,6 +21,7 @@ class Main:
         self.chatbot = RagChatbot()
         self.webbaseloader = WebTransfer()
         self.texttransefr=TextTransfer()
+        self.pdf_loader=PdfTransfer()
 
 
         self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
@@ -50,7 +52,7 @@ class Main:
         return resopnse
     
     def mian_for_pdf(self,pdf,question):
-        documnets=self.ingest.from_pdf(link=pdf)
+        documnets=self.pdf_loader.transfer(pdf_path=pdf)
         db_path=self.data_loader(documents=documnets)
         data=self.load_vector(db_path=db_path,question=question)
         resopnse=self.chatbot.ragchatbot(context=data,question=question,session_id=1)
@@ -61,11 +63,11 @@ class Main:
         db_path=self.data_loader(documents=documnets)
         data=self.load_vector(db_path=db_path,question=question)
         resopnse=self.chatbot.ragchatbot(context=data,question=question,session_id=1)
-        print(resopnse)
+        return resopnse.content
 
 
 if __name__ == "__main__":
     obj = Main()
     link = r"https://scikit-learn.org/stable/modules/linear_model.html#ridge-regression-and-classification"
-    response=obj.main_for_web(link=link,question="what is the liner regression")
+    response=obj.main_for_web(link=link,question="content in that df")
     print(response)
