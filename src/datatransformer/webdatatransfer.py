@@ -33,8 +33,8 @@ class WebTransfer:
         return loader.load()
 
 
-if __name__ == "__main__":
-    obj = WebTransfer()
-    docs = obj.transfer("https://www.w3schools.com/java/java_intro.asp")
+# if __name__ == "__main__":
+#     obj = WebTransfer()
+#     docs = obj.transfer("https://www.w3schools.com/java/java_intro.asp")
 
-    print(docs)
+#     print(docs)

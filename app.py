@@ -1,114 +1,138 @@
-from flask import Flask,request,Response,render_template,jsonify,send_file
-import os 
-from fastapi.responses import HTMLResponse,PlainTextResponse,FileResponse
-from fastapi import FastAPI,UploadFile,File,Form
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-import uvicorn
-import os
-
-
+import streamlit as st
 from main import Main
 
-
-obj=Main()
-Main()
-
-# from fastapi import 
-
-app=FastAPI()
-
-UPLOAD_FOLDER = "uploaded_pdfs"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+# --------------------------------------------------
+# Page config
+# --------------------------------------------------
+st.set_page_config(
+    page_title="RAG Chatbot",
+    page_icon="🤖",
+    layout="wide"
 )
 
-@app.get("/",response_class=HTMLResponse)
-def home():
-    return FileResponse("templates/index.html")
+# --------------------------------------------------
+# Load backend ONCE
+# --------------------------------------------------
+@st.cache_resource
+def load_backend():
+    return Main()
 
-@app.post("/for_link")
-async def from_link(user_link:str=Form(...),question:str=Form(...)):
-    
-    try:
-        response=obj.main_for_web(link=user_link,question=question)
-        return PlainTextResponse(response)
-    except Exception as e:
-        print(e)
-        return PlainTextResponse("Error preocessing link",status_code=500)
-    
-    
-@app.post("/for_pdf")
-async def from_pdf(pdf_file:UploadFile=File(...),question:str=Form(...)):
-    try:
-        save_path=os.path.join(UPLOAD_FOLDER,pdf_file.filename)
-        response=obj.mian_for_pdf(pdf=save_path,question=question)
-        return PlainTextResponse(response)
-    except Exception as e:
-        print(e)
-        return PlainTextResponse("Erro during the processes",status_code=500)
+obj = load_backend()
 
-# @app.post("for_text")
-# async def from_text(text:str=Form(...),question:str=Form(...)):
-#     try:
-#         response=obj.mian_for_text(text_path=text)
-    
+# --------------------------------------------------
+# Initialize Streamlit session state
+# --------------------------------------------------
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
+if "source_type" not in st.session_state:
+    st.session_state.source_type = "Website"
 
-if __name__=="__main__":
-    uvicorn.run("main_api:app",host="0.0.0.0",port=1111,reload=True)
+# --------------------------------------------------
+# Sidebar UI
+# --------------------------------------------------
+st.sidebar.title("⚙️ Controls")
 
+st.session_state.source_type = st.sidebar.radio(
+    "Select Data Source",
+    ["Website", "PDF", "Text"]
+)
 
+# Inputs based on source
+if st.session_state.source_type == "Website":
+    link = st.sidebar.text_input(
+        "Website URL",
+        placeholder="https://example.com"
+    )
 
+elif st.session_state.source_type == "PDF":
+    uploaded_pdf = st.sidebar.file_uploader(
+        "Upload PDF",
+        type=["pdf"]
+    )
 
+elif st.session_state.source_type == "Text":
+    text_input = st.sidebar.text_area(
+        "Enter Text",
+        height=200
+    )
 
+# --------------------------------------------------
+# NEW CHAT BUTTON (IMPORTANT)
+# --------------------------------------------------
+if st.sidebar.button("➕ New Chat"):
+    # Clear UI history
+    st.session_state.messages = []
 
-# @app.route("/")
-# def home():
-#     return render_template("index.html")
+    # Reset backend memory (new session_id)
+    obj.reset_fuction()
 
-# @app.route("/for_link",methods=["POST","GET"])
-# def from_link():
-    
-#     if request.method=="POST":
-#         data=request.form.get("user_link")
-#         try:
-#             response=obj.main_for_web(link=data,question="what that repo is contain")
-#             return response
-#         except:
-#             print("error")
-#             return "error processing link",500
+    # Rerun app
+    st.rerun()
 
-# @app.route("/for_pdf", methods=["POST"])
-# def from_pdf():
-#     if "pdf_file" not in request.files:
-#         return "No file found in the request"
+# --------------------------------------------------
+# Main UI
+# --------------------------------------------------
+st.title("🤖 RAG Chatbot")
+st.caption("Context-aware conversational RAG with memory")
 
-#     pdf = request.files["pdf_file"]
+# --------------------------------------------------
+# Display chat history
+# --------------------------------------------------
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-#     if pdf.filename == "":
-#         return "No file selected"
-#     save_path = os.path.join(UPLOAD_FOLDER, pdf.filename)
-#     pdf.save(save_path)
-#     try:
-#         response = obj.mian_for_pdf(pdf=save_path,question="what is the softawre engineering")
+# --------------------------------------------------
+# Chat input
+# --------------------------------------------------
+prompt = st.chat_input("Ask your question...")
 
-#         return response
+if prompt:
+    # Store and show user message
+    st.session_state.messages.append(
+        {"role": "user", "content": prompt}
+    )
 
-#     except Exception as e:
-#         print("Error while processing PDF:", e)
-#         return "Error processing PDF", 500
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
+    # Generate response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            try:
+                if st.session_state.source_type == "Website":
+                    response = obj.main_for_web(
+                        link=link,
+                        question=prompt
+                    )
 
-# #@app.route("/for")
-    
+                elif st.session_state.source_type == "PDF":
+                    if uploaded_pdf is None:
+                        st.error("Please upload a PDF.")
+                        st.stop()
 
+                    with open("temp.pdf", "wb") as f:
+                        f.write(uploaded_pdf.read())
 
-# if __name__=="__main__":
-#     app.run(host="0.0.0.0",port=1111,debug=True)
-    
+                    response = obj.mian_for_pdf(
+                        pdf="temp.pdf",
+                        question=prompt
+                    )
+
+                elif st.session_state.source_type == "Text":
+                    response = obj.mian_for_text(
+                        text_path=text_input,
+                        question=prompt
+                    )
+
+                st.markdown(response)
+
+            except Exception as e:
+                response = f" Error: {e}"
+                st.error(response)
+
+    # Store assistant message
+    st.session_state.messages.append(
+        {"role": "assistant", "content": response}
+    )

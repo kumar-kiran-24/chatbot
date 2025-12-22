@@ -71,6 +71,22 @@ The information is not available in the provided context.
             config={"configurable": {"session_id": self.session_id}}
         )
         return response.content
+    
+    
+    # def reset_session(self, session_id: int, reset_context: bool = True):
+ 
+    #     if session_id in self.store:
+    #         del self.store[session_id]
+
+    #     if reset_context and session_id in self.context_store:
+    #         del self.context_store[session_id]
+
+    #     if hasattr(self, "session_id") and self.session_id == session_id:
+    #         self.session_id = None
+    #         self.saved_context = None
+    #         self.bot = None
+
+    #     return f"Session {session_id} reset successfully."
 
 
 if __name__=="__main__":
