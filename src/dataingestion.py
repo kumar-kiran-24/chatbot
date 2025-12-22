@@ -2,6 +2,9 @@ import os
 from dotenv import load_dotenv
 import bs4
 
+from langchain_core.documents import Document
+
+
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -26,10 +29,20 @@ class Dataingestion:
         document=text_splliter.split_documents(loadre)
         return document
     
+    def for_pdf(self, text: str):
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
 
-if __name__=="__main__":
-    obj=Dataingestion()
-    final_documents=obj.from_website(r"https://scikit-learn.org/stable/modules/linear_model.html#ridge-regression-and-classification")
-    print(final_documents)
+        chunks = splitter.split_text(text)
 
+        documents = [
+            Document(
+                page_content=chunk,
+                metadata={"source": "pdf"}
+            )
+            for chunk in chunks
+        ]
 
+        return documents

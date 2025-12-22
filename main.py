@@ -9,6 +9,7 @@ from src.components.ragchatbot import RagChatbot
 from src.datatransformer.webdatatransfer import WebTransfer
 from src.datatransformer.textdatatransfer import TextTransfer
 from src.datatransformer.pdfdatatransfer import PdfTransfer
+from pathlib import Path
 
 load_dotenv()
 
@@ -24,12 +25,16 @@ class Main:
         self.texttransefr=TextTransfer()
         self.pdf_loader=PdfTransfer()
         self.session_id=1
+        self.text_loder=Dataingestion()
 
 
         self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-        self.DB_PATH = r"C:\GEN_AI\chatbot\embeddings"
+        # self.DB_PATH = r"C:\GEN_AI\chatbot\embeddings"
+        BASE_DIR = Path.cwd()          # current working directory
+        self.DB_PATH = BASE_DIR / "embeddings"
 
+        self.DB_PATH.mkdir(parents=True, exist_ok=True)
 
     def data_loader(self, documents):
         db_path=self.embeder.initiate_embedding(documents=documents)
@@ -53,33 +58,23 @@ class Main:
         resopnse=self.chatbot.ragchatbot(context=data,question=question,session_id=self.session_id)
         return str(resopnse)
     
-    def mian_for_pdf(self,pdf,question):
-        documnets=self.pdf_loader.transfer(pdf_path=pdf)
+    def mian_for_pdf(self,text,question):
+        documnets=self.text_loder.for_pdf(text=text)
+        # documnets=self.pdf_loader.transfer(pdf_path=pdf)
         db_path=self.data_loader(documents=documnets)
         data=self.load_vector(db_path=db_path,question=question)
         resopnse=self.chatbot.ragchatbot(context=data,question=question,session_id=self.session_id)
-        print(resopnse)
-        return str(response)
+        # print(resopnse)
+        return resopnse
     
     def mian_for_text(self,text_path,question):
-        documnets=self.texttransefr.transfer(path=text_path)
+        documnets=self.text_loder.for_pdf(text=text_path)
         db_path=self.data_loader(documents=documnets)
         data=self.load_vector(db_path=db_path,question=question)
         resopnse=self.chatbot.ragchatbot(context=data,question=question,session_id=self.session_id)
-        return resopnse.content
+        return resopnse
     
     def reset_fuction(self):
         self.session_id+=1
 
 
-if __name__ == "__main__":
-    obj = Main()
-    link = r"https://scikit-learn.org/stable/modules/linear_model.html#ridge-regression-and-classification"
-    response=obj.main_for_web(link=link,question="what is the ridge regression")
-    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    print(response)
-    
-    # text="hello this is the kiran i am the ai engineer and the i learn the ml,dl,nlp and genrative ai "
-    # response=obj.mian_for_text(text_path=text,question="what is my name ")
-    # print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-    # print(response)

@@ -1,12 +1,23 @@
-
-requests
-python-dotenv
-langchain
-langchain-chroma
-langchain-huggingface
-chromadb
-beautifulsoup4
 streamlit
 
+langchain-core
+langchain-community
+langchain-text-splitters
 
+langchain-huggingface
+sentence-transformers
+torch
 
+faiss-cpu
+
+langchain-groq
+
+pypdf
+
+requests
+beautifulsoup4
+
+python-dotenv
+
+numpy
+tqdm
