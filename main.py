@@ -76,5 +76,6 @@ class Main:
     
     def reset_fuction(self):
         self.session_id+=1
+        print(self.session_id)
 
 
