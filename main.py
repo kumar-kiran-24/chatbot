@@ -24,7 +24,7 @@ class Main:
         self.webbaseloader = WebTransfer()
         self.texttransefr=TextTransfer()
         self.pdf_loader=PdfTransfer()
-        self.session_id=1
+        
         self.text_loder=Dataingestion()
 
 
@@ -77,3 +77,5 @@ class Main:
     def reset_fuction(self):
         self.session_id+=1
         print(self.session_id)
+
+    
