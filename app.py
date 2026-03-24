@@ -6,7 +6,7 @@ from  fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 
-from main import Main
+from src.main import Main
 from src.components.ragchatbot import RagChatbot
 from src.components.chatbot import Chatbot
 
@@ -41,10 +41,10 @@ class rag_url(BaseModel):
     session_id=str
 
 @app.post("/ragchatbot_url")
-async def ragbot(user:rag)
+async def ragbot(user:rag_url):
     question=user.question
     session_is=user.session_id
-    context=
+
 
 
 if __name__=="__main__":

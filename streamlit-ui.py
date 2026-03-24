@@ -1,5 +1,5 @@
 import streamlit as st
-from main import Main
+from src.main import Main
 from pypdf import PdfReader
 from io import BytesIO
 

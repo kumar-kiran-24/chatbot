@@ -16,20 +16,19 @@ class Dataingestion:
         
         pass
 
-    def from_pdf(self,link):
-        self.link=link
-        loader=PyMuPDFLoader.load(link)
+    def from_pdf(self,path):
+        loader=PyMuPDFLoader.load(path)
         documnet=text_splliter.split_documents(loader)
         return documnet
 
 
     def from_website(self,link):
         webbase_loader=WebBaseLoader(web_paths=(link,))
-        loadre=webbase_loader.load()
-        document=text_splliter.split_documents(loadre)
+        loader=webbase_loader.load()
+        document=text_splliter.split_documents(loader)
         return document
     
-    def for_pdf(self, text: str):
+    def for_text(self, text: str):
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200
