@@ -4,7 +4,7 @@ import bs4
 
 from langchain_core.documents import Document
 
-
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,10 +17,8 @@ class Dataingestion:
         pass
 
     def from_pdf(self,path):
-        loader=PyMuPDFLoader.load(path)
-        documnet=text_splliter.split_documents(loader)
-        return documnet
-
+        loader = PyPDFLoader(path)
+        return loader.load()
 
     def from_website(self,link):
         webbase_loader=WebBaseLoader(web_paths=(link,))

@@ -61,6 +61,7 @@ The information is not available in the provided context.
             {"question": question, "context": self.saved_context},
             config={"configurable": {"session_id": self.session_id}}
         )
+        print(response)
 
         return response.content
 
