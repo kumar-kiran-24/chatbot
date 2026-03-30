@@ -1,6 +1,9 @@
 from src.dataingestion import Dataingestion
 from src.dataembedding import DataEmbedding
 from src.datatransformer.datasplitter import DataSplitter
+from langchain_qdrant import Qdrant
+from qdrant_client import QdrantClient
+from langchain_qdrant import QdrantVectorStore
 
 import os 
 from dotenv import load_dotenv
@@ -37,14 +40,29 @@ class Main:
         return chunks
 
     def data_loader(self,question):
-        load = FAISS.load_local(
-            folder_path="embeddings",
-            embeddings=self.embedding_model,
-            allow_dangerous_deserialization=True
+        client=QdrantClient(
+            url=os.getenv("QDRANT_URL"),
+            api_key=os.getenv("QDRANT_API_KEY"),
+            check_compatibility=False
         )
-        context=load.similarity_search(question,k=6)
+
+        vectorstore=QdrantVectorStore(
+            client=client,
+            collection_name="chatbot",
+            embedding=self.embedding_model
+        )
+
+        docs=vectorstore.similarity_search(query=question,k=5)
+        
+        context = "\n\n".join([
+                f"FILE: {doc.metadata.get('source')}\n{doc.page_content}"
+                for doc in docs
+            ])
+        
         print(context)
+        
         return context
+        
 if __name__=="__main__":
     obj=Main()
     obj.pdf(path=r"/media/kirankumars/Windows-SSD/GEN_AI/chatbot/uploads/2b11a980-a17f-4367-8d07-0565044ddf84.pdf")

@@ -3,8 +3,6 @@ import uvicorn
 from pydantic import BaseModel
 from  fastapi.middleware.cors import CORSMiddleware
 import os
-from urllib.parse import urlparse
-import uuid
 import shutil
 
 
@@ -13,6 +11,15 @@ from src.components.ragchatbot import RagChatbot
 from src.components.chatbot import Chatbot
 
 app=FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*" ] , 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/")
 def home():
@@ -33,7 +40,12 @@ async def chatbot(user:chat_bot):
     session_id=user.session_id
 
     res=qa_bot.chat(question=question,session_id=session_id)
-    return res
+    print(res)
+    return {
+        "response":res
+    }
+
+
 class get_url(BaseModel):
     url:str
 
@@ -56,13 +68,21 @@ async def ragbot(user:rag_url):
     }
 class web_data(BaseModel):
     url:str
+
 @app.post("/web")
-def web(url:web_data):
+def web(url: web_data):
+    print(url)
+    if not url.url.startswith("http"):
+        raise HTTPException(status_code=400, detail="Invalid URL format")
+
     main.web(url=url.url)
 
+    return {
+        "response": "upload successfully"
+    }
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR = "tmp"
+
 
 
 @app.post("/upload-pdf")
@@ -82,14 +102,22 @@ async def upload_pdf(file: UploadFile = File(...)):
         emb=main.pdf(path=file_path)
 
         return {
-            "message": "PDF uploaded successfully",
-            "file_path": file_path
+            "response":"upload susefylly"
         }
 
     except Exception as e:
         return{
             "error":e
         }
+class text_model(BaseModel):
+    text:str
+@app.post("/text")
+async def text_data(text:text_model):
+    text=text.text
+    main.text(text=text)
+    return{
+        "response":" upload sussefuly"
+    }
 
 
 if __name__=="__main__":
