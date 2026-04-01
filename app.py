@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from  fastapi.middleware.cors import CORSMiddleware
 import os
 import shutil
-
+import uuid
 
 from main import Main
 from src.components.ragchatbot import RagChatbot
@@ -82,7 +82,7 @@ def web(url: web_data):
     }
 
 UPLOAD_DIR = "tmp"
-
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @app.post("/upload-pdf")

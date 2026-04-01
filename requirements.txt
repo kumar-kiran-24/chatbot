@@ -26,3 +26,6 @@ numpy
 tqdm
 pydantic
 uvicorn
+fastapi
+
+python-multipart
